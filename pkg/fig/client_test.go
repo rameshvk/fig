@@ -64,7 +64,6 @@ func TestFigSetBadRequest(t *testing.T) {
 	})
 }
 
-
 func TestHistory(t *testing.T) {
 	c, cleanup := startServer(t)
 	defer cleanup()

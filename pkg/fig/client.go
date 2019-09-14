@@ -33,7 +33,7 @@ func (c *Client) GetSince(version int) (int, map[string]string) {
 	var got struct {
 		Version int
 		Config  map[string]string
-	} 
+	}
 	r, err := c.Client.Get(u.String())
 	checkResponse(r, err, &got)
 	return got.Version, got.Config
