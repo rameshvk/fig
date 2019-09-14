@@ -2,7 +2,7 @@ package server
 
 import (
 	"encoding/json"
-	
+
 	"github.com/go-redis/redis"
 )
 
@@ -12,7 +12,7 @@ import (
 // The provided namespace is used to construct a prefix of the
 // form "{fig_<ns>}" for all the keys
 func NewRedisStore(address, ns string) Store {
-        prefix := "{fig_" + ns + "}"
+	prefix := "{fig_" + ns + "}"
 	return red{redis.NewClient(&redis.Options{Addr: address}), prefix}
 }
 
@@ -32,7 +32,7 @@ func (r red) GetSince(version int) (int, map[string]string) {
 	if err := json.Unmarshal([]byte(pair[1].(string)), &config); err != nil {
 		panic(err)
 	}
-	
+
 	return int(pair[0].(int64)), config
 }
 
@@ -100,7 +100,6 @@ var luaSet = redis.NewScript(luaCommon + `
   return 0
 `)
 
-
 var luaHistory = redis.NewScript(luaCommon + `
   local key, max = ARGV[1], ARGV[2]
   if max == "" then
@@ -122,4 +121,3 @@ var luaHistory = redis.NewScript(luaCommon + `
 
   return {tostring(key), result}
 `)
-
