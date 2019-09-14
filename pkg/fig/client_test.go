@@ -41,6 +41,30 @@ func TestFigSet(t *testing.T) {
 	}
 }
 
+func TestFigSetBadRequest(t *testing.T) {
+	c, cleanup := startServer(t)
+	defer cleanup()
+
+	mustPanic := func(cause string, fn func()) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("did not panic:", cause)
+			}
+		}()
+		fn()
+	}
+	mustPanic("malformed json", func() {
+		c.Set("boo", "hoo")
+	})
+	mustPanic("empty array", func() {
+		c.Set("boo", "[]")
+	})
+	mustPanic("no objects", func() {
+		c.Set("boo", "{}")
+	})
+}
+
+
 func TestHistory(t *testing.T) {
 	c, cleanup := startServer(t)
 	defer cleanup()

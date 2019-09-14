@@ -1,7 +1,7 @@
 # fig
 
 [![Status](https://travis-ci.com/rameshvk/fig.svg?branch=master)](https://travis-ci.com/rameshvk/fig?branch=master)
-[![GoDoc](https://godoc.org/github.com/rameshvk/fig?status.svg)](https://godoc.org/github.com/rameshvk/fig)
+[![GoDoc](https://godoc.org/github.com/rameshvk/fig?status.svg)](https://godoc.org/github.com/rameshvk/fig/pkg/fig)
 [![codecov](https://codecov.io/gh/rameshvk/fig/branch/master/graph/badge.svg)](https://codecov.io/gh/rameshvk/fig)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rameshvk/fig)](https://goreportcard.com/report/github.com/rameshvk/fig)
 
@@ -20,7 +20,7 @@ Fig is a simple config server written in Go.
 * The actual storage format is a simple list (much like LISP). This
   allow for new clients to implement the evaluation very easily
 * The UI for fig encodes raw code into this format.  It also provides
-  vieewers and differs.
+  viewers and differs.
 
 ## Status
 

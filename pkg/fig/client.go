@@ -30,33 +30,20 @@ func (c *Client) GetSince(version int) (int, map[string]string) {
 	q.Add("version", strconv.Itoa(version))
 	u.RawQuery = q.Encode()
 	u = u.ResolveReference(mustParse("items"))
-	resp, err := c.Client.Get(u.String())
-	if err == nil && resp.StatusCode != 200 {
-		body, err2 := ioutil.ReadAll(resp.Body)
-		check(err2)
-		err = errors.New("http.request failed " + resp.Status + "\n" + string(body))
-	}
-	check(err)
-	defer resp.Body.Close()
-	got := struct {
+	var got struct {
 		Version int
 		Config  map[string]string
-	}{}
-	check(json.NewDecoder(resp.Body).Decode(&got))
+	} 
+	r, err := c.Client.Get(u.String())
+	checkResponse(r, err, &got)
 	return got.Version, got.Config
 }
 
 func (c *Client) Set(key, val string) {
 	u := mustParse(c.URL)
 	u = u.ResolveReference(mustParse("items/" + url.PathEscape(key)))
-	resp, err := c.Client.Post(u.String(), "application/json", strings.NewReader(val))
-	if err == nil && resp.StatusCode != 200 {
-		body, err2 := ioutil.ReadAll(resp.Body)
-		check(err2)
-		err = errors.New("http.request failed " + resp.Status + "\n" + string(body))
-	}
-	check(err)
-	resp.Body.Close()
+	r, err := c.Client.Post(u.String(), "application/json", strings.NewReader(val))
+	checkResponse(r, err, nil)
 }
 
 func (c *Client) History(key, epoch string) (string, []string) {
@@ -67,19 +54,12 @@ func (c *Client) History(key, epoch string) (string, []string) {
 	q.Add("epoch", epoch)
 	u.RawQuery = q.Encode()
 	u = u.ResolveReference(mustParse("items/" + url.PathEscape(key)))
-	resp, err := c.Client.Get(u.String())
-	if err == nil && resp.StatusCode != 200 {
-		body, err2 := ioutil.ReadAll(resp.Body)
-		check(err2)
-		err = errors.New("http.request failed " + resp.Status + "\n" + string(body))
-	}
-	check(err)
-	defer resp.Body.Close()
-	got := struct {
+	var got struct {
 		Epoch   string
 		History []string
-	}{}
-	check(json.NewDecoder(resp.Body).Decode(&got))
+	}
+	r, err := c.Client.Get(u.String())
+	checkResponse(r, err, &got)
 	return got.Epoch, got.History
 }
 
@@ -87,6 +67,19 @@ func mustParse(s string) *url.URL {
 	u, err := url.Parse(s)
 	check(err)
 	return u
+}
+
+func checkResponse(resp *http.Response, err error, v interface{}) {
+	if err == nil && resp.StatusCode != 200 {
+		body, err2 := ioutil.ReadAll(resp.Body)
+		check(err2)
+		err = errors.New("http.request failed " + resp.Status + "\n" + string(body))
+	}
+	defer resp.Body.Close()
+	check(err)
+	if v != nil {
+		check(json.NewDecoder(resp.Body).Decode(v))
+	}
 }
 
 func check(err error) {

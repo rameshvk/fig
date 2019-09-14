@@ -35,6 +35,7 @@ func TestHandler(t *testing.T) {
 
 	suite := Suite{fig.New(ts.URL)}
 	suite.Run(t)
+	t.Run("MalformedJSON", suite.testMalformedJSON)
 }
 
 type Suite struct {
@@ -87,4 +88,24 @@ func (s Suite) testHistory(t *testing.T) {
 	if epoch != strconv.Itoa(ver) || !reflect.DeepEqual(items, []string{`"wop"`, `"hop"`, `"hoo"`}) {
 		t.Fatal("unexpected", epoch, items)
 	}
+}
+
+func (s Suite) testMalformedJSON(t *testing.T) {
+	mustPanic := func(cause string, fn func()) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("did not panic:", cause)
+			}
+		}()
+		fn()
+	}
+	mustPanic("malformed json", func() {
+		s.Set("boo", "hoo")
+	})
+	mustPanic("empty array", func() {
+		s.Set("boo", "[]")
+	})
+	mustPanic("no objects", func() {
+		s.Set("boo", "{}")
+	})
 }
