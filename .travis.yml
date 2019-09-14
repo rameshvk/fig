@@ -1,0 +1,4 @@
+language: go
+sudo: false
+script: bash ./scripts/test.sh
+after_success: bash ./scripts/upload_coverage.sh bash <(curl -s https://codecov.io/bash)

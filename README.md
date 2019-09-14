@@ -1,5 +1,10 @@
 # fig
 
+[![Status](https://travis-ci.com/rameshvk/fig.svg?branch=master)](https://travis-ci.com/rameshvk/fig?branch=master)
+[![GoDoc](https://godoc.org/github.com/rameshvk/fig?status.svg)](https://godoc.org/github.com/rameshvk/fig)
+[![codecov](https://codecov.io/gh/rameshvk/fig/branch/master/graph/badge.svg)](https://codecov.io/gh/rameshvk/fig)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rameshvk/fig)](https://goreportcard.com/report/github.com/rameshvk/fig)
+
 Fig is a simple config server written in Go.
 
 * Configuration in fig is a collection of key-value pairs. That is,

@@ -78,6 +78,7 @@ func handleHistory(s Store, w http.ResponseWriter, r *http.Request) interface{} 
 func wrap(s Store, fn func(s Store, w http.ResponseWriter, r *http.Request) interface{}) http.Handler {
 	f := func(w http.ResponseWriter, r *http.Request) {
 		if result := fn(s, w, r); result != nil {
+			w.Header().Add("Content-Type", "application/json")
 			err := json.NewEncoder(w).Encode(result)
 			if err != nil {
 				panic(err)
