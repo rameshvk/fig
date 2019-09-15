@@ -32,7 +32,8 @@ func Reflect(v interface{}, base Scope, wrap func(interface{}) interface{}) Scop
 
 	val := reflect.ValueOf(v)
 	switch val.Kind() {
-	case reflect.Map: return &reflected_map{val, base, wrap}
+	case reflect.Map:
+		return &reflected_map{val, base, wrap}
 	}
 	return base
 }
