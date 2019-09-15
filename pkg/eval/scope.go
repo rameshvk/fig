@@ -9,11 +9,6 @@ type Callable interface {
 	Call(root Scope, offset int, args []interface{}) (interface{}, error)
 }
 
-// Fieldable is any value that allows "dot" access to fields
-type Fieldable interface {
-	Field(root Scope, offset int, field string) (interface{}, error)
-}
-
 // Scope is any object which a lookup of values in the scope
 type Scope interface {
 	Lookup(root Scope, offset int, name string) (interface{}, error)
@@ -62,12 +57,12 @@ func dot(root Scope, offset int, args []interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	if fieldable, ok := left.(Fieldable); ok {
+	if fieldable, ok := left.(Scope); ok {
 		field, err := toString(root, offset, args[1])
 		if err != nil {
 			return nil, err
 		}
-		return fieldable.Field(root, offset, field)
+		return fieldable.Lookup(root, offset, field)
 	}
 	return nil, fmt.Errorf("dot is not valid at %d", offset)
 }

@@ -1,16 +1,18 @@
 package eval_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/rameshvk/fig/pkg/eval"
 )
 
+var intmap = map[int]int{4: 24}
+var strmap = map[string]interface{}{"hoo": "hoodoo"}
 var scope = eval.ExtendScope(map[string]interface{}{
 	"boo":    45.0,
 	"hoo":    42,
-	"boohoo": fielder{"hoo": "hoodoo"},
+	"boohoo": eval.ExtendScope(strmap,nil),
+	"map": eval.Reflect(intmap, eval.Reflect(strmap, nil, nil), nil),
 	"var": eval.CallableFunc(func(root eval.Scope, offset int, args []interface{}) (interface{}, error) {
 		return root.Lookup(root, offset, args[0].(string))
 	}),
@@ -40,6 +42,8 @@ func TestExpressions(t *testing.T) {
 		`["if", true, 1, 2]`:                     1.0,
 		`["if", false, 1, 2]`:                    2.0,
 		`[".", ["var", "boohoo"], "hoo"]`:        "hoodoo",
+		`[".", ["var", "map"], "4"]`:           24,
+		`[".", ["var", "map"], "hoo"]`:           "hoodoo",		
 	}
 
 	for k, v := range exprs {
@@ -50,13 +54,4 @@ func TestExpressions(t *testing.T) {
 			}
 		})
 	}
-}
-
-type fielder map[string]interface{}
-
-func (f fielder) Field(root eval.Scope, offset int, field string) (interface{}, error) {
-	if v, ok := f[field]; ok {
-		return v, nil
-	}
-	return nil, fmt.Errorf("%s is not a field at %d", field, offset)
 }
