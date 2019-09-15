@@ -33,7 +33,9 @@ type Store interface {
 }
 
 // Handler returns a HTTP handler for the config server service
-func Handler(s Store) http.Handler {
+//
+// The store factory passed in is used to create a store for each request.
+func Handler(s func(r *http.Request) Store) http.Handler {
 	m := mux.NewRouter()
 
 	m.Handle("/items", wrap(s, handleGetSince)).Methods("GET")
@@ -75,9 +77,15 @@ func handleHistory(s Store, w http.ResponseWriter, r *http.Request) interface{} 
 	return map[string]interface{}{"epoch": epoch, "history": history}
 }
 
-func wrap(s Store, fn func(s Store, w http.ResponseWriter, r *http.Request) interface{}) http.Handler {
+func wrap(s func(r *http.Request) Store, fn func(s Store, w http.ResponseWriter, r *http.Request) interface{}) http.Handler {
 	f := func(w http.ResponseWriter, r *http.Request) {
-		if result := fn(s, w, r); result != nil {
+		store := s(r)
+		if store == nil {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+
+		if result := fn(store, w, r); result != nil {
 			w.Header().Add("Content-Type", "application/json")
 			err := json.NewEncoder(w).Encode(result)
 			if err != nil {
@@ -108,4 +116,17 @@ func isValid(v interface{}) error {
 	}
 
 	return errors.New("unexpected type")
+}
+
+func apiName(r *http.Request) string {
+	_, ok := mux.Vars(r)["key"]
+	switch {
+	case ok && r.Method == http.MethodGet:
+		return "History"
+	case ok && r.Method == http.MethodPost:
+		return "Set"
+	case r.Method == http.MethodGet:
+		return "GetSince"
+	}
+	return ""
 }

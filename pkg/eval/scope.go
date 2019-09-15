@@ -32,21 +32,22 @@ func ExtendScope(v map[string]interface{}, base Scope) Scope {
 // DefaultScope is the default scope which implements standard
 // operators and such
 var DefaultScope = ExtendScope(map[string]interface{}{
-	"+":  numOperator(func(l, r float64) float64 { return l + r }),
-	"-":  numOperator(func(l, r float64) float64 { return l - r }),
-	"*":  numOperator(func(l, r float64) float64 { return l * r }),
-	"/":  numOperator(func(l, r float64) float64 { return l / r }),
-	"<":  numCmpOperator(func(l, r float64) bool { return l < r }),
-	">":  numCmpOperator(func(l, r float64) bool { return l > r }),
-	"<=": numCmpOperator(func(l, r float64) bool { return l <= r }),
-	">=": numCmpOperator(func(l, r float64) bool { return l >= r }),
-	"==": CallableFunc(equals),
-	"!=": CallableFunc(notEquals),
-	"&&": boolOperator(func(l, r bool) bool { return l && r }),
-	"||": boolOperator(func(l, r bool) bool { return l || r }),
-	"!":  CallableFunc(not),
-	".":  CallableFunc(dot),
-	"if": CallableFunc(ifFunc),
+	"+":   numOperator(func(l, r float64) float64 { return l + r }),
+	"-":   numOperator(func(l, r float64) float64 { return l - r }),
+	"*":   numOperator(func(l, r float64) float64 { return l * r }),
+	"/":   numOperator(func(l, r float64) float64 { return l / r }),
+	"<":   numCmpOperator(func(l, r float64) bool { return l < r }),
+	">":   numCmpOperator(func(l, r float64) bool { return l > r }),
+	"<=":  numCmpOperator(func(l, r float64) bool { return l <= r }),
+	">=":  numCmpOperator(func(l, r float64) bool { return l >= r }),
+	"==":  CallableFunc(equals),
+	"!=":  CallableFunc(notEquals),
+	"&&":  boolOperator(func(l, r bool) bool { return l && r }),
+	"||":  boolOperator(func(l, r bool) bool { return l || r }),
+	"!":   CallableFunc(not),
+	".":   CallableFunc(dot),
+	"if":  CallableFunc(ifFunc),
+	"ref": CallableFunc(ref),
 }, nil)
 
 func dot(root Scope, offset int, args []interface{}) (interface{}, error) {
@@ -79,6 +80,16 @@ func ifFunc(root Scope, offset int, args []interface{}) (interface{}, error) {
 		return Value(offset, args[1], root)
 	}
 	return Value(offset, args[2], root)
+}
+
+func ref(root Scope, offset int, args []interface{}) (interface{}, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("ref has incorrect args at %d", offset)
+	}
+	if s, ok := args[0].(string); ok {
+		return root.Lookup(root, offset, s)
+	}
+	return nil, fmt.Errorf("ref has non-strinng arg at %d", offset)
 }
 
 type numOperator func(l, r float64) float64

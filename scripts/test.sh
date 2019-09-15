@@ -2,7 +2,8 @@
 
 GO111MODULE=on
 
-set -x
+set -ex
+
 go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.17.1
 golangci-lint run ./...
 for d in $(go list ./... | grep -v vendor | grep -v /cmd/ | grep -v test); do

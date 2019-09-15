@@ -26,7 +26,7 @@ Fig is a simple config server written in Go.
 
 * [X] REDIS backed store
 * [X] Basic API server
-* [ ] API key auth
+* [X] API key auth
 * [ ] Basic edit UI
 * [ ] UI auth
 * [ ] API GH auth

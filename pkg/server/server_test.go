@@ -5,6 +5,7 @@ import (
 	"github.com/rameshvk/fig/pkg/fig"
 	"github.com/rameshvk/fig/pkg/server"
 
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"strconv"
@@ -22,7 +23,7 @@ func TestRedis(t *testing.T) {
 	suite.Run(t)
 }
 
-func TestHandler(t *testing.T) {
+func TestAuthorizedHandler(t *testing.T) {
 	s, err := miniredis.Run()
 	if err != nil {
 		t.Fatal("mini redis failed", err)
@@ -30,12 +31,104 @@ func TestHandler(t *testing.T) {
 	defer s.Close()
 
 	store := server.NewRedisStore(s.Addr(), "test-handler")
-	ts := httptest.NewServer(server.Handler(store))
+	authStore := server.NewRedisStore(s.Addr(), "auth-store")
+	unauthorized := func(r *http.Request) server.Store {
+		return nil
+	}
+	authorized := func(r *http.Request) server.Store {
+		return store
+	}
+
+	ts := httptest.NewServer(server.Handler(server.BasicAuth(authStore, authorized, unauthorized)))
 	defer ts.Close()
 
-	suite := Suite{fig.New(ts.URL)}
+	server.SetBasicAuthInfo(authStore, "authorized_user", "pass")
+	suite := Suite{fig.New(ts.URL).WithBasicAuth("authorized_user", "pass")}
 	suite.Run(t)
 	t.Run("MalformedJSON", suite.testMalformedJSON)
+}
+
+func TestUnauthorizedHandler(t *testing.T) {
+	s, err := miniredis.Run()
+	if err != nil {
+		t.Fatal("mini redis failed", err)
+	}
+	defer s.Close()
+
+	store := server.NewRedisStore(s.Addr(), "test-handler")
+	unauthorized := func(r *http.Request) server.Store {
+		return nil
+	}
+	authorized := func(r *http.Request) server.Store {
+		return store
+	}
+
+	ts := httptest.NewServer(server.Handler(server.BasicAuth(store, authorized, unauthorized)))
+	defer ts.Close()
+
+	c := fig.New(ts.URL)
+
+	mustPanic := func(cause string, fn func()) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("did not panic:", cause)
+			}
+		}()
+		fn()
+	}
+
+	mustPanic("GetSince", func() {
+		c.GetSince(-1)
+	})
+	mustPanic("Set", func() {
+		c.Set("boo", `"true"`)
+	})
+	mustPanic("History", func() {
+		c.History("boo", "")
+	})
+}
+
+func TestUnauthorizedHandlerWrongPassword(t *testing.T) {
+	s, err := miniredis.Run()
+	if err != nil {
+		t.Fatal("mini redis failed", err)
+	}
+	defer s.Close()
+
+	store := server.NewRedisStore(s.Addr(), "test-handler")
+	authStore := server.NewRedisStore(s.Addr(), "auth-store")
+	unauthorized := func(r *http.Request) server.Store {
+		return nil
+	}
+	authorized := func(r *http.Request) server.Store {
+		return store
+	}
+
+	ts := httptest.NewServer(server.Handler(server.BasicAuth(authStore, authorized, unauthorized)))
+	defer ts.Close()
+
+	server.SetBasicAuthInfo(authStore, "authorized_user", "pass")
+
+	c := fig.New(ts.URL).WithBasicAuth("authorized_user", "wrong")
+
+	mustPanic := func(cause string, fn func()) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Fatal("did not panic:", cause)
+			}
+		}()
+		fn()
+	}
+
+	mustPanic("GetSince", func() {
+		c.GetSince(-1)
+	})
+	mustPanic("Set", func() {
+		c.Set("boo", `"true"`)
+	})
+	mustPanic("History", func() {
+		c.History("boo", "")
+	})
 }
 
 type Suite struct {

@@ -14,12 +14,21 @@ import (
 // Client implements the main fig client API.
 type Client struct {
 	*http.Client
-	URL string
+	URL         string
+	AddAuthInfo func(r *http.Request) *http.Request
 }
 
 // New creates a new client based on the provided URL prefix.
 func New(url string) *Client {
-	return &Client{&http.Client{}, url}
+	return &Client{&http.Client{}, url, func(r *http.Request) *http.Request { return r }}
+}
+
+func (c *Client) WithBasicAuth(user, password string) *Client {
+	c.AddAuthInfo = func(r *http.Request) *http.Request {
+		r.SetBasicAuth(user, password)
+		return r
+	}
+	return c
 }
 
 func (c *Client) GetSince(version int) (int, map[string]string) {
@@ -34,7 +43,9 @@ func (c *Client) GetSince(version int) (int, map[string]string) {
 		Version int
 		Config  map[string]string
 	}
-	r, err := c.Client.Get(u.String())
+	req, err := http.NewRequest("GET", u.String(), nil)
+	check(err)
+	r, err := c.Client.Do(c.AddAuthInfo(req))
 	checkResponse(r, err, &got)
 	return got.Version, got.Config
 }
@@ -42,7 +53,10 @@ func (c *Client) GetSince(version int) (int, map[string]string) {
 func (c *Client) Set(key, val string) {
 	u := mustParse(c.URL)
 	u = u.ResolveReference(mustParse("items/" + url.PathEscape(key)))
-	r, err := c.Client.Post(u.String(), "application/json", strings.NewReader(val))
+	req, err := http.NewRequest("POST", u.String(), strings.NewReader(val))
+	check(err)
+	req.Header.Set("Content-Type", "application/json")
+	r, err := c.Client.Do(c.AddAuthInfo(req))
 	checkResponse(r, err, nil)
 }
 
@@ -58,7 +72,9 @@ func (c *Client) History(key, epoch string) (string, []string) {
 		Epoch   string
 		History []string
 	}
-	r, err := c.Client.Get(u.String())
+	req, err := http.NewRequest("GET", u.String(), nil)
+	check(err)
+	r, err := c.Client.Do(c.AddAuthInfo(req))
 	checkResponse(r, err, &got)
 	return got.Epoch, got.History
 }

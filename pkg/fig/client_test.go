@@ -5,6 +5,7 @@ import (
 	"github.com/rameshvk/fig/pkg/fig"
 	"github.com/rameshvk/fig/pkg/server"
 
+	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
@@ -89,6 +90,9 @@ func startServer(t *testing.T) (*fig.Client, func()) {
 		t.Fatal("mini redis failed", err)
 	}
 
-	ts := httptest.NewServer(server.Handler(server.NewRedisStore(s.Addr(), "test")))
+	store := server.NewRedisStore(s.Addr(), "test")
+	ts := httptest.NewServer(server.Handler(func(r *http.Request) server.Store {
+		return store
+	}))
 	return fig.New(ts.URL), func() { ts.Close(); s.Close() }
 }
