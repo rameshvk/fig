@@ -24,9 +24,9 @@ func BasicAuth(s Store, authorized, unauthorized func(r *http.Request) Store) fu
 		if v, ok := configs["auth:basic:"+user]; ok {
 			scope := eval.ExtendScope(
 				map[string]interface{}{
-					"user":     user,
-					"password": pass,
-					"api":      apiName(r),
+					"key":    user,
+					"secret": pass,
+					"api":    apiName(r),
 				},
 				eval.DefaultScope,
 			)
@@ -46,6 +46,6 @@ func SetBasicAuthInfo(s Store, user, password string) {
 	if err != nil {
 		panic(err)
 	}
-	setting := fmt.Sprintf(`["==",["ref", "password"],%s]`, encoded)
+	setting := fmt.Sprintf(`["==",["ref", "secret"],%s]`, encoded)
 	s.Set("auth:basic:"+user, setting)
 }

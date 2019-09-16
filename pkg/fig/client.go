@@ -19,13 +19,26 @@ type Client struct {
 }
 
 // New creates a new client based on the provided URL prefix.
+//
+// This implemention is not cached. For better performance, wrap
+// the client implementation with github.com/rameshvk/fig/pkg/cache:
+//
+//     import "github.com/rameshvk/fig/pkg/cache"
+//     ...
+//     client := cache.New(client.New(url).WithBasicAuth(user, pwd))
+//     ....
+//     _, cfg := client.GetSince(-1); // use -1 always with cached
+//     setting, ok := cfg["my_setting"]
+//
+//
 func New(url string) *Client {
 	return &Client{&http.Client{}, url, func(r *http.Request) *http.Request { return r }}
 }
 
-func (c *Client) WithBasicAuth(user, password string) *Client {
+// WithKey sets up the client to make calls with the provided API key
+func (c *Client) WithKey(key, secret string) *Client {
 	c.AddAuthInfo = func(r *http.Request) *http.Request {
-		r.SetBasicAuth(user, password)
+		r.SetBasicAuth(key, secret)
 		return r
 	}
 	return c

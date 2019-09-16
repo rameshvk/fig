@@ -42,8 +42,8 @@ func TestAuthorizedHandler(t *testing.T) {
 	ts := httptest.NewServer(server.Handler(server.BasicAuth(authStore, authorized, unauthorized)))
 	defer ts.Close()
 
-	server.SetBasicAuthInfo(authStore, "authorized_user", "pass")
-	suite := Suite{fig.New(ts.URL).WithBasicAuth("authorized_user", "pass")}
+	server.SetBasicAuthInfo(authStore, "authorized_key", "secret")
+	suite := Suite{fig.New(ts.URL).WithKey("authorized_key", "secret")}
 	suite.Run(t)
 	t.Run("MalformedJSON", suite.testMalformedJSON)
 }
@@ -88,7 +88,7 @@ func TestUnauthorizedHandler(t *testing.T) {
 	})
 }
 
-func TestUnauthorizedHandlerWrongPassword(t *testing.T) {
+func TestUnauthorizedHandlerWrongKey(t *testing.T) {
 	s, err := miniredis.Run()
 	if err != nil {
 		t.Fatal("mini redis failed", err)
@@ -107,9 +107,9 @@ func TestUnauthorizedHandlerWrongPassword(t *testing.T) {
 	ts := httptest.NewServer(server.Handler(server.BasicAuth(authStore, authorized, unauthorized)))
 	defer ts.Close()
 
-	server.SetBasicAuthInfo(authStore, "authorized_user", "pass")
+	server.SetBasicAuthInfo(authStore, "authorized_key", "secret")
 
-	c := fig.New(ts.URL).WithBasicAuth("authorized_user", "wrong")
+	c := fig.New(ts.URL).WithKey("authorized_key", "wrong")
 
 	mustPanic := func(cause string, fn func()) {
 		defer func() {
