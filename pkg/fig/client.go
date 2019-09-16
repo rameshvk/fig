@@ -1,4 +1,18 @@
 // Package fig implements the Golang client for fig
+//
+// The typical use of fig to fetch configuration is
+// something like this;
+//
+//      import "github.com/rameshvk/fig/pkg/fig"
+//      ...
+//      var cfg := fig.Config(url, key, secret, time.Second)
+//      ...
+//      val, err := cfg.Get("my.entry", map[string]string{"user": 42})
+//
+// The arg provided to Get is typically a map or a struct whose
+// fields can be accessed by the setting definition to provide the
+// specific cofiguration value.  The setting is a simple expression
+// which is evaluated for the matching arguments.
 package fig
 
 import (
@@ -11,7 +25,10 @@ import (
 	"strings"
 )
 
-// Client implements the main fig client API.
+// Client implements the raw fig client API.
+//
+// This is typically not used by services. For fetching
+// configuration, the Config() function is a lot simpler.
 type Client struct {
 	*http.Client
 	URL         string
@@ -20,17 +37,8 @@ type Client struct {
 
 // New creates a new client based on the provided URL prefix.
 //
-// This implemention is not cached. For better performance, wrap
-// the client implementation with github.com/rameshvk/fig/pkg/cache:
-//
-//     import "github.com/rameshvk/fig/pkg/cache"
-//     ...
-//     client := cache.New(client.New(url).WithBasicAuth(user, pwd))
-//     ....
-//     _, cfg := client.GetSince(-1); // use -1 always with cached
-//     setting, ok := cfg["my_setting"]
-//
-//
+// This implemention is not cached. Use Config() for a cached
+// configuration fetcher
 func New(url string) *Client {
 	return &Client{&http.Client{}, url, func(r *http.Request) *http.Request { return r }}
 }
