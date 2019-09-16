@@ -4,9 +4,11 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/alicebob/miniredis"
 
+	"github.com/rameshvk/fig/pkg/cache"
 	"github.com/rameshvk/fig/pkg/server"
 )
 
@@ -32,8 +34,9 @@ func main() {
 	unauthorized := func(r *http.Request) server.Store {
 		return nil
 	}
+	authStore := cache.New(store, time.Second, nil)
 
-	authorize := server.BasicAuth(store, authorized, unauthorized)
+	authorize := server.BasicAuth(authStore, authorized, unauthorized)
 	handler := server.Handler(authorize)
 
 	http.Handle("/", http.FileServer(http.Dir(*staticDir)))

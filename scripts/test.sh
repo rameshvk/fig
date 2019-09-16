@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GO111MODULE=on
+export GO111MODULE=on
 
 set -ex
 
