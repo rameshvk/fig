@@ -70,6 +70,34 @@ sys.streams.replace(s = v, .x = 42)
 sys.streams.snapshot(s = some_stream)
 ```
 
+### Stateful stream functions
+
+The `concat(x, y)` function which concatenates elements from two array streams:
+
+```
+concat = {
+  stateful.result
+  stateful = sys.streams.stateful(
+    x = it.x
+    y = it.y
+    state = Object(result=concat(xval, yval), x=it.x)
+    where(xval = sys.streams.snapshot(x), yval = sys.streams.snapshot(y))
+    next = {
+      new_state,
+      new_state = it.state.replace(.x = resultx, result=resulty)
+      resultx = xdelta.applyTo(it.result)
+      resulty = ydelta.applyTo(resultx)
+      xdelta = it.xdelta.split(path="x").affected
+      ydelta = it.xdelta.split(path="x").unaffected.shift(offset=resultx.count())
+    }
+  )
+}
+```
+
+`stateful` takes `state` as the `initial state` and `next` as the function which applies
+any `delta` on the provided stream args (in this case `x` and `y`) to the state.  Any 
+updates of the state are propagated.
+
 ## Macros
 
 The `macro(xform, code)` function is treated like aa preprocessor directive.
