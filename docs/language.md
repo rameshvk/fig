@@ -14,32 +14,32 @@ The fig language is a simple expression based language
 | Logical    | `x && y` or `x \|\| y` or `!x` (only works on booleans)|
 | Equality   | `x == y` or `x != y` (works on all types with comparison based on value, not reference)|
 | Names      | `user` (names are either global context or scopes as defined later) |
-| Fn call    | `f(x= 5)` or `g(y= 22)` (function args are always named) |
+| Fn call    | `f(x = 5)` or `g(y = 22)` (function args are named) |
 | Closure    | `list.filter(by = {it.field > 22})` (curly braces define closures; `it.field` refers to named `field` arg) |
-| Scope      | `list.filter(by = {it.field > z}, where(z= 22))` (where introduces a local scope in any function, allowing any names used before to be defined |
-| Objects    | `Object(x= 1, y= 2).x` (The `Object` function takes arbitrary names) |
-| Lists      | `List([0]= 1, [1]= 3).0` (The `List` function only takes numeric keys) |
+| Scope      | `list.filter(by = {it.field > z}, where(z = 22))` (where introduces a local scope in any function, allowing any names used before to be defined |
+| Objects    | `object(x = 1, y = 2).x` (The `object` function takes arbitrary names) |
+| Lists      | `list(1, 3)` (The `list` function is special) |
 
 ## Special characters in names
 
 Names can have single quotes, back-quotes, square brackets and any non-whitespace unicode letter and all but the first unicode character can also be a unicode digit.
 
-A single quoted name can include any character (just like a double-quote string).  Similarly with square brackets (which have to match, though they can be nested).  Sequences of whitespaces compare as equal irrespective of size of type of whitespace.
+A single quoted name can include any character (just like a double-quote string).  Similarly with square brackets (which have to match, though they can be nested).  
 
-Names can be `primed`:  `john'5`.  In where clauses, `john = ...` is sufficient to apply to all primed versions but overrides can also be provided like so: `john'1 + john'2, where (john = "john", john'2 = "John")`.  UI renderings of primed names are expected to use the number as a super-script which when clicked would reveal the actual `where` definition of it.
+Names can also have super-scripts and subscripts `x^5` is a superscript (which should be rendered in UI as x⁵).  Subscripts are done with underscores `x_5`.  Both super-scripts and sub-scripts are part of the name (so `x^1`  and `x^2` are not the same).   Names can also be primed: `x'` or `x''`. 
 
 ## Syntactic sugar
 
-* Commas are optional at the end of a line.
-* `x= y= z` is equivalent to `x= y, where (y= z)`
-* `x.0` is equivalent to `x.get(idx=0)` (There is no native array support)
+* Commas are optional at the end of a line.  Dangling operators are not allowed, i..e a line cannot end with `+`
+* `x = y = z` is equivalent to `x = y, where (y= z)`
 * There is no support for setting a field. Instead, most objects 
-  are expected to support a `replace` method which returns a new value.
-* `x.replace(.y.z= 5)` is equivalent to `x.replace(x.y.replace(x.y.z.replace(value=5))`.  
+  are expected to support a `replace` method which returns a new value: `x.replace(5)`
+* `x.replace(.y.z = 5)` is equivalent to `x.replace(x.y.replace(x.y.z.replace(5))`.  
   When x is a `stream`, both forms do the right thing (i.e. propagate changes)
 * `List(x, y, z)` is shorthand for `List([0]= x, [1]= y, [2]= z)`
-* Function calls with single args: `f(x)` is equivalent to `f(it= x)`
-* Function calls shorthand #2: `f(=x, =y)` is equivalent to `f(x= x, y= y)` 
+* Function calls with single args: `f(x)` is equivalent to `f(it = x)`
+* Multi named arg shorthand #2: `f(x, y)` is equivalent to `f(x = x, y = y)` 
+* A where clause can show up in any function call or closures
 
 
 ## Streams
@@ -82,69 +82,27 @@ sys.streams.replace(s= v, .x= 42)
 sys.streams.snapshot(s = some_stream)
 ```
 
+### Reactive stream expressions 
+
+An expression like `x + y` is effectively a stream if either x or y is a stream. The result is basically another stream.
+
 ### Stateful stream functions
 
-The `concat(x, y)` function which concatenates elements from two array streams:
+Stateful reactive streams can be built using `sys.streams.transform` which calls a handler on each delta, allowing it to mutate the stream in response (this mutation will not show up again in the handler):
 
 ```
-concat = {
-  state.result
-  state = fixup(combined)
-  combined = sys.streams.join(x= it.x, y= it.y, result= initial))
-  initial = concat(x= snapshot(it.x), y= snapshot(it.y))
-  snapshot = sys.streams.snapshot
-  fixup = { 
-    it.change({ handle(it.stream, it.delta) }) 
-  }
-  handle = {
-    s = it.stream,
-    x = it.x
-    y = it.y
-    state = Object(result= concat(snap(x), snap(y)), x= it.x)
-    snap = {sys.streams.snapshot(it)}
-    next = {
-      state',
-      state' = it.state.replace(.x= x', result= result')
-      x' = Δx.applyTo(it.state.x)
-      result' = Δy.applyTo(Δx.applyTo(it.state.result))
-      Δx = it.Δ.split("x").affected
-      Δy = it.Δ.split("x").unaffected.shift(offset=x'.count())
-    }
-  )
+delta_count = {
+ transformed.result
+ transformed = sys.streams.transform(s, xform)
+ s = sys.streams.join(x = it.x, y = it.y, result = 0)
+ xform = { it.result.replace(it.result + 1) }
 }
 ```
 
-`stateful` takes `state` as the `initial state` and `next` as the function which applies
-any `delta` on the provided stream args (in this case `x` and `y`) to the state.  Any 
-updates of the state are propagated.
-
 ## Macros
 
-The `macro(xform, code)` function is treated like aa preprocessor directive.
-The AST of the `code` arg (which can be any expression) is transformed by the `closure`. 
+The `macro` function is a bit special:
 
-The example below indicates how a JSX-like extension might work with the preprocessor support.
+* `where(x^5 = macro(x.get(5))` effectively replaces all occurence of `x^5` with `x.get(5)`
+* `where(xml = macro({transform(it)})` effectively takes any occcurence of `xml(expr)` and calls `transform` on the AST of the expression allowing the macro to rewrite the AST.  This allows elegant ways of doing things like templating or JSX
 
-```
-module(
-  name = "my module"
-  export = fig.macro(
-    code = '<div> my xml template {hello} </div>'
-    xform = import("github.com/rameshvk/fig/modules/xml").parser
-    where(hello = "hello, world")
-  )
-)
-```
-
-## Code matches
-
-Macros allow arbitrary transformations but for more Fig=>Fig transformatinos, a more direct system would be useful:
-
-```
-module(
-  .....
-  fig.replace(
-     match = [AnyName](z=[AnyValue])
-     replace = [AnyName](x=[AnyValue])
-  ) 
-```
