@@ -99,3 +99,33 @@ The `macro` function is a bit special:
 * `where(x^5 = macro(x.get(5))` effectively replaces all occurence of `x^5` with `x.get(5)`
 * `where(xml = macro({transform(it)})` effectively takes any occcurence of `xml(expr)` and calls `transform` on the AST of the expression allowing the macro to rewrite the AST.  This allows elegant ways of doing things like templating or JSX
 
+
+## Documentation
+
+The whole fig code is treated as a single markdown file with actual code fenced by triple-backquote follwed by `fig` accepted as fig code.
+
+Within a code fence, comments can be done using macros like so:
+
+```
+someFn(
+  note("..... some comment  "),
+  ....
+  where(note = macro(where()))
+)
+```
+
+This approach allows custom documentation field names than `note`
+
+## Types and constraints
+
+Fig allows lexical strong typing if desired. A type in fig is viewed as a constraint on a value and so is treated as a simple boolean closure:
+
+```
+  x = { isPositive(it.y) + isPositive(it.z) }
+  where(isPositive = constraint({ it > 0 }))
+```
+
+The use of constraint function allows good composition.  Parameterized types are possible.
+
+Not all functions can be lexically analyzed.
+
