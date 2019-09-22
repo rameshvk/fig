@@ -77,9 +77,13 @@ func TestUnaryOps(t *testing.T) {
 func TestAssignment(t *testing.T) {
 	code := "f(x = y = a + b, p = q)"
 	firstArg := []interface{}{
-		"=:8:9",
-		[]interface{}{"=:4:5", name("x", "2:3"), name("y", "6:7")},
-		[]interface{}{"+:12:13", name("a", "10:11"), name("b", "14:15")},
+		"=:4:5",
+		name("x", "2:3"),
+		[]interface{}{
+			"=:8:9",
+			name("y", "6:7"),
+			[]interface{}{"+:12:13", name("a", "10:11"), name("b", "14:15")},
+		},
 	}
 
 	expected := []interface{}{
@@ -93,7 +97,7 @@ func TestAssignment(t *testing.T) {
 	if len(errs) > 0 {
 		t.Fatal("Failed", errs)
 	}
-	if diff := cmp.Diff(got, expected); diff != "" {
+	if diff := cmp.Diff(expected, got); diff != "" {
 		t.Fatal("Diff", diff)
 	}
 }

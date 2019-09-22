@@ -81,7 +81,7 @@ func normalizeArg(v interface{}, errs *[]error) interface{} {
 	// equals is valid as an arg though lhs has constraints
 	if assign, ok := v.([]interface{}); ok && assign[0] == "=" {
 		loc := assign[1].(string)
-		return []interface{}{"=:" + loc, normalizeScopeLHS(assign[2], errs), normalize(assign[3], errs)}
+		return []interface{}{"=:" + loc, normalizeScopeLHS(assign[2], errs), normalizeArg(assign[3], errs)}
 	}
 
 	return normalize(v, errs)
@@ -90,11 +90,6 @@ func normalizeArg(v interface{}, errs *[]error) interface{} {
 func normalizeScopeLHS(v interface{}, errs *[]error) interface{} {
 	if n, ok := v.([]interface{}); ok && n[0] == "name" {
 		return normalize(v, errs)
-	}
-
-	if assign, ok := v.([]interface{}); ok && assign[0] == "=" {
-		loc := assign[1].(string)
-		return []interface{}{"=:" + loc, normalizeScopeLHS(assign[2], errs), normalize(assign[3], errs)}
 	}
 
 	panic("NYI") // allow .x type expressions too but nothing else

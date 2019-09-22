@@ -130,7 +130,11 @@ func (p *parser) handleOp(op string, start, end int, errs *[]error) {
 	}
 
 	pri := priority[op]
+	isRightAssociative := op == "="
 	for l := len(p.ops) - 1; l >= 0 && priority[p.ops[l]] >= pri; l-- {
+		if isRightAssociative && p.ops[l] == op {
+			break
+		}
 		right := p.popTerm(errs)
 		left := p.popTerm(errs)
 		term := p.term(p.ops[l], p.starts[l], p.ends[l], left, right)
