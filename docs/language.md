@@ -7,11 +7,11 @@ The fig language is a simple expression based language
 | Features   | Examples |
 | ---------- | ------------- |
 | Number     | `1.5` or `1_000_000`  |
-| Strings    | `"hello"` or `"Wayne's world"` |
+| Strings    | `"hello"` or `"Wayne's world"` or `"A \"quote\""`|
 | Boolean    | `true` or `false` |
 | Arithmetic | `1 + 2` or `x * 15` or `x / 10` or `x - y` (Arithmetic only works on numbers) |
 | Comparison | `x < y` or `x > y` or `x <= y` or `x >= y` (comparison works on any pair of types, not nust numbers) |
-| Logical    | `x && y` or `x \|\| y` or `!x` (only works on booleans)|
+| Logical    | `x & y` or `x \| y` or `!x` (only works on booleans)|
 | Equality   | `x == y` or `x != y` (works on all types with comparison based on value, not reference)|
 | Names      | `user` (names are either global context or scopes as defined later) |
 | Fn call    | `f(x = 5)` or `g(y = 22)` (function args are named) |
@@ -39,7 +39,7 @@ Names can also have super-scripts and subscripts `x^5` is a superscript (which s
 * `List(x, y, z)` is shorthand for `List([0]= x, [1]= y, [2]= z)`
 * Function calls with single args: `f(x)` is equivalent to `f(it = x)`
 * Multi named arg shorthand #2: `f(x, y)` is equivalent to `f(x = x, y = y)` 
-* A where clause can show up in any function call or closures
+* A where clause can show up in any function call or in any closure
 
 
 ## Streams
@@ -52,49 +52,42 @@ v = sys.streams.new(s = any_initial_value)
 
 All the fields of the underlying value are available but calling `replace` on it will naturally edit the whole stream.
 
+If the input to `sys.streams.new` is itself a stream, the original stream is returned.
+
 ### Composing streams
 
-```
-v = sys.streams.join(x = some_stream, y = some_other_stream)
-```
+All standard operations on streams (such as `x + y`) just return streams. The computation is treated as a reactive computation.
+
+For example, `Object(x = stream1, y = stream2)` results in a stream whose objects have fields `x` and `y` that track the input stream.
 
 ### Editing stream definitions
 
-```
-v1 = ...,
-v2 = ...,
-v = sys.streams.join(x= v1, y= v2)
-z = v.replace(.x = 42)
-```
+Editing stream values cause back-propagation where it is meaningful.
 
-The example here propagates the edit to the underlying `x` stream
-(i.e. v1).  Future changes of v1 will still get reflected on `z`.
+For example, `z = Object(x = stream1, y = stream2), z' = z.replace(.x = 5)` effectively propagates the change upstream to `stream1` if that were possible.  If that isn't possible, the stream definition of `z` is changed so that its `x` field is replaced by a constant.
 
-To change the stream definition itself, use `sys.streams.replace`:
-
-```
-sys.streams.replace(s= v, .x= 42)
-```
+Explicit edits of a stream definition is possible using `sys.streams.replace` instead of `.replace`.
 
 ### Snapshotting streams
 
-```
-sys.streams.snapshot(s = some_stream)
-```
+A single snapshot of a value (i.e. a non-stream fixed value) is obtained via `sys.streams.snapshot(s)`.
 
-### Reactive stream expressions 
+### Readonly streams
 
-An expression like `x + y` is effectively a stream if either x or y is a stream. The result is basically another stream.
+Readonly streams can be obtained by `sys.streams.readonly(s)` -- any changes are not propagated upstream in this (though it is not clear if edits will cause errors or simply cause the stream definition to change)
+```
 
 ### Stateful stream functions
 
-Stateful reactive streams can be built using `sys.streams.transform` which calls a handler on each delta, allowing it to mutate the stream in response (this mutation will not show up again in the handler):
+Stateful reactive streams can be built using `sys.streams.transform` which calls a handler on each delta, allowing it to mutate the stream in response (this mutation will not show up again in the handler).
+
+The following example is a function that returns a stream which tracks number of deltas in its two input streams.
 
 ```
 delta_count = {
  transformed.result
  transformed = sys.streams.transform(s, xform)
- s = sys.streams.join(x = it.x, y = it.y, result = 0)
+ s = Object(x = it.x, y = it.y, result = sys.streams.new(0))
  xform = { it.result.replace(it.result + 1) }
 }
 ```
