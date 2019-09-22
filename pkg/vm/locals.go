@@ -36,7 +36,7 @@ func (l *Locals) Delete(at uint32) {
 			return
 		}
 	}
-	kk := at
+	kk := int(at)
 	for ; kk >= 0 && !l.active[kk]; kk-- {
 	}
 	l.active = l.active[:kk+1]
