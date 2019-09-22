@@ -38,7 +38,10 @@ var priority = map[string]int{
 func String(s string) (interface{}, []error) {
 	var errs []error
 	p := parsers{&parser{}}
-	result := p.parse(s, &errs)
+	// The space hack is needed because the parse code below
+	// does not handle finishing the token up properly
+	result := p.parse(s+" ", &errs)
+	result = normalize(result, &errs)
 	return result, errs
 }
 
@@ -123,8 +126,7 @@ func (p *parser) term(op string, start, end int, terms ...interface{}) interface
 
 func (p *parser) handleOp(op string, start, end int, errs *[]error) {
 	if !p.lastWasTerm {
-		// two consequtive ops is no good.  Push a nil term
-		p.terms = append(p.terms, nil)
+		p.terms = append(p.terms, MissingTermError(start))
 	}
 
 	pri := priority[op]
@@ -170,8 +172,8 @@ func (p *parser) popTerm(err *[]error) (result interface{}) {
 		result, p.terms = p.terms[l-1], p.terms[:l-1]
 		return result
 	}
-	// TODO: report error?
-	return nil
+	// TODO: add correct location
+	return MissingTermError(0)
 }
 
 func (p *parser) wrapTerm(t interface{}, start, end int) interface{} {
