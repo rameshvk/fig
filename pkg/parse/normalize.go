@@ -57,7 +57,6 @@ func appendArgs(list []interface{}, loc string, args interface{}, errs *[]error)
 		if err != nil {
 			panic(err)
 		}
-		panic(args)
 		*errs = append(*errs, MissingOperatorError(end))
 		return nil
 	}
