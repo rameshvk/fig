@@ -31,6 +31,10 @@ func normalize(v interface{}, errs *[]error) interface{} {
 		return appendArgs(l, loc, right, errs)
 	case "()":
 		return normalize(left, errs)
+	case ".":
+		if name := right.([]interface{}); ok && name[0] == "name" {
+			name[0] = "string"
+		}
 	case "{}":
 		panic("NYI") // need to allow comma and equals here
 	case ",":
