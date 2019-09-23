@@ -151,9 +151,15 @@ func (p *parser) handleOp(op string, start, end int, errs *[]error) {
 func (p *parser) handleTerm(term interface{}, start, end int, errs *[]error) {
 	term = p.wrapTerm(term, start, end)
 	if p.lastWasTerm {
-		l := len(p.terms) - 1
-		term = p.term("", start, start, p.terms[l], term)
-		p.terms = p.terms[:l]
+		if l := len(p.ops) - 1; l >= 0 && p.ops[l] == "." {
+			right := p.popTerm(errs)
+			left := p.popTerm(errs)
+			term := p.term(p.ops[l], p.starts[l], p.ends[l], left, right)
+			p.terms = append(p.terms, term)
+			p.ops, p.starts, p.ends = p.ops[:l], p.starts[:l], p.ends[:l]
+		}
+
+		term = p.term("", start, start, p.popTerm(errs), term)
 	}
 	p.terms = append(p.terms, term)
 	p.lastWasTerm = true
