@@ -54,6 +54,12 @@
       "length"
     ]
   ],
+  "()": {
+    "errors": [
+      "missing term at 0"
+    ],
+    "result": null
+  },
   "f()": [
     "call:1:1",
     [
@@ -256,6 +262,39 @@
       1000
     ]
   ],
+  "x + ": {
+    "errors": [
+      "missing term at 4"
+    ],
+    "result": [
+      "+:2:3",
+      [
+        "name:0:1",
+        "x"
+      ],
+      null
+    ]
+  },
+  "x + + y": {
+    "errors": [
+      "missing term at 4"
+    ],
+    "result": [
+      "+:4:5",
+      [
+        "+:2:3",
+        [
+          "name:0:1",
+          "x"
+        ],
+        null
+      ],
+      [
+        "name:6:7",
+        "y"
+      ]
+    ]
+  },
   "x + y + z": [
     "+:6:7",
     [
@@ -306,6 +345,22 @@
       "boo"
     ]
   ],
+  "x(": {
+    "errors": [
+      "incomplete braces/parens at 2",
+      "missing term at 2"
+    ],
+    "result": null
+  },
+  "x)": {
+    "errors": [
+      "mismatched braces/parens at 1"
+    ],
+    "result": [
+      "name:0:1",
+      "x"
+    ]
+  },
   "x.(y)": [
     ".:1:2",
     [
@@ -317,6 +372,24 @@
       "y"
     ]
   ],
+  "x..": {
+    "errors": [
+      "missing term at 2",
+      "missing term at 3"
+    ],
+    "result": [
+      ".:2:3",
+      [
+        ".:1:2",
+        [
+          "name:0:1",
+          "x"
+        ],
+        null
+      ],
+      null
+    ]
+  },
   "{ x, y = 23 }": [
     "{}:0:13",
     [
@@ -344,5 +417,14 @@
         "x"
       ]
     ]
-  ]
+  ],
+  "{}": {
+    "errors": [
+      "missing term at 0"
+    ],
+    "result": [
+      "{}:0:2",
+      null
+    ]
+  }
 }

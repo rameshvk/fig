@@ -32,7 +32,7 @@ func normalize(v interface{}, errs *[]error) interface{} {
 	case "()":
 		return normalize(left, errs)
 	case ".":
-		if name := right.([]interface{}); ok && name[0] == "name" {
+		if name, ok := right.([]interface{}); ok && name[0] == "name" {
 			name[0] = "string"
 		}
 	case "{}":
@@ -55,6 +55,11 @@ func normalize(v interface{}, errs *[]error) interface{} {
 }
 
 func appendArgs(list []interface{}, loc string, args interface{}, errs *[]error) interface{} {
+	if err, ok := args.(error); ok {
+		*errs = append(*errs, err)
+		return nil
+	}
+
 	l, ok := args.([]interface{})
 	if !ok || l[0] != "()" {
 		parts := strings.Split(loc, ":")

@@ -9,6 +9,7 @@ import (
 
 func TestSuite(t *testing.T) {
 	cases := []string{
+		// success cases
 		"x + y + z",
 		"f(x = y = z, a = b)",
 		`"hel\"lo".length`,
@@ -24,6 +25,15 @@ func TestSuite(t *testing.T) {
 		"{ x, y = 23 }",
 		"f({ z.x, z = g() })",
 		"{x}()",
+
+		// error cases
+		"x + + y",
+		"x + ",
+		"x(",
+		"x)",
+		"{}",
+		"()",
+		"x..",
 	}
 
 	results := map[string]interface{}{}

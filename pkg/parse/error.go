@@ -17,6 +17,23 @@ func (e MismatchedBracesError) Error() string {
 func (e MismatchedBracesError) ErrorOffset() int {
 	return int(e)
 }
+func (e MismatchedBracesError) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.Error() + `"`), nil
+}
+
+// IncompleteBracesError is when terminating braces/parens
+// are missing
+type IncompleteBracesError int
+
+func (e IncompleteBracesError) Error() string {
+	return "incomplete braces/parens at " + strconv.Itoa(int(e))
+}
+func (e IncompleteBracesError) ErrorOffset() int {
+	return int(e)
+}
+func (e IncompleteBracesError) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.Error() + `"`), nil
+}
 
 // IncompleteStringError is when a string is not terminated
 type IncompleteStringError int
@@ -27,6 +44,9 @@ func (e IncompleteStringError) Error() string {
 func (e IncompleteStringError) ErrorOffset() int {
 	return int(e)
 }
+func (e IncompleteStringError) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.Error() + `"`), nil
+}
 
 // InvalidCharacterError is an unexpected character is found
 type InvalidCharacterError int
@@ -36,6 +56,9 @@ func (e InvalidCharacterError) Error() string {
 }
 func (e InvalidCharacterError) ErrorOffset() int {
 	return int(e)
+}
+func (e InvalidCharacterError) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.Error() + `"`), nil
 }
 
 // MissingOperatorError is when two terms are adjacent without an
@@ -48,6 +71,9 @@ func (e MissingOperatorError) Error() string {
 func (e MissingOperatorError) ErrorOffset() int {
 	return int(e)
 }
+func (e MissingOperatorError) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.Error() + `"`), nil
+}
 
 // MissingTermError is when a term is missing altogether
 type MissingTermError int
@@ -57,4 +83,7 @@ func (e MissingTermError) Error() string {
 }
 func (e MissingTermError) ErrorOffset() int {
 	return int(e)
+}
+func (e MissingTermError) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + e.Error() + `"`), nil
 }

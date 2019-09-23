@@ -81,7 +81,7 @@ func (p *parsers) parse(s string, errs *[]error) interface{} {
 		}
 	}
 
-	return p.finish(len(s), errs)
+	return p.finish(len(s)-1, errs)
 }
 
 func (p *parsers) top() *parser {
@@ -104,6 +104,8 @@ func (p *parsers) pop() *parser {
 func (p *parsers) finish(start int, errs *[]error) interface{} {
 	result := p.pop().finish(start, errs)
 	for len(*p) > 0 {
+		*errs = append(*errs, IncompleteBracesError(start))
+		start = p.top().nestingStart
 		p.top().handleTerm(result, start, start, errs)
 		result = p.pop().finish(start, errs)
 	}
@@ -167,6 +169,10 @@ func (p *parser) unwindOp(errs *[]error) {
 }
 
 func (p *parser) finish(start int, errs *[]error) interface{} {
+	if !p.lastWasTerm {
+		p.terms = append(p.terms, MissingTermError(start))
+	}
+
 	for l := len(p.ops) - 1; l >= 0; l-- {
 		p.unwindOp(errs)
 	}
