@@ -42,7 +42,7 @@ func normalize(v interface{}, errs *[]error) interface{} {
 		panic("NYI") // need error code here
 	case "=":
 		panic("NYI") // need error code here
-	case "string", "name", "number":
+	case "string", "name", "number", "bool":
 		return []interface{}{fn + ":" + loc, left}
 	case "+", "-", "!":
 		if _, ok := left.(MissingTermError); ok {

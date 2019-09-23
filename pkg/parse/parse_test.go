@@ -34,6 +34,9 @@ func TestSuite(t *testing.T) {
 		"{}",
 		"()",
 		"x..",
+		"true",
+		"false",
+		"f(x = y)",
 	}
 
 	results := map[string]interface{}{}
