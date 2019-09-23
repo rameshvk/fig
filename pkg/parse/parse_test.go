@@ -19,6 +19,7 @@ func TestSuite(t *testing.T) {
 		"!(x == y)",
 		"!(-1 < +x)",
 		"x < y & y < z | boo",
+		"!!x",
 	}
 
 	results := map[string]interface{}{}

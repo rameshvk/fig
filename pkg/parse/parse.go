@@ -130,7 +130,7 @@ func (p *parser) handleOp(op string, start, end int, errs *[]error) {
 	}
 
 	pri := priority[op]
-	isRightAssociative := op == "="
+	isRightAssociative := op == "=" || op == "!"
 	for l := len(p.ops) - 1; l >= 0 && priority[p.ops[l]] >= pri; l-- {
 		if isRightAssociative && p.ops[l] == op {
 			break
