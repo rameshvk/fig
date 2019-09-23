@@ -93,6 +93,7 @@ func normalizeArg(v interface{}, errs *[]error) interface{} {
 
 func normalizeScopeLHS(v interface{}, errs *[]error) interface{} {
 	if n, ok := v.([]interface{}); ok && n[0] == "name" {
+		n[0] = "string"
 		return normalize(v, errs)
 	}
 
