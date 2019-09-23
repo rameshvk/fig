@@ -21,6 +21,9 @@ func TestSuite(t *testing.T) {
 		"x < y & y < z | boo",
 		"!!x",
 		"x.(y)",
+		"{ x, y = 23 }",
+		"f({ z.x, z = g() })",
+		"{x}()",
 	}
 
 	results := map[string]interface{}{}

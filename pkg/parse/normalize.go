@@ -36,7 +36,8 @@ func normalize(v interface{}, errs *[]error) interface{} {
 			name[0] = "string"
 		}
 	case "{}":
-		panic("NYI") // need to allow comma and equals here
+		l := []interface{}{"{}:" + loc}
+		return appendCommas(l, left, errs)
 	case ",":
 		panic("NYI") // need error code here
 	case "=":
