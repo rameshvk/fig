@@ -69,9 +69,9 @@ func (p *parsers) parse(s string, errs *[]error) interface{} {
 			pair := nesting + s
 			if pair != "()" && pair != "{}" {
 				*errs = append(*errs, MismatchedBracesError(start))
-				return p.finish(errs)
+				return p.finish(nestingStart, errs)
 			}
-			term := p.pop().finish(errs)
+			term := p.pop().finish(nestingStart, errs)
 			term = p.top().term(pair, nestingStart, end, term)
 			p.top().handleTerm(term, nestingStart, end, errs)
 		case ok:
@@ -81,7 +81,7 @@ func (p *parsers) parse(s string, errs *[]error) interface{} {
 		}
 	}
 
-	return p.finish(errs)
+	return p.finish(len(s), errs)
 }
 
 func (p *parsers) top() *parser {
@@ -101,11 +101,11 @@ func (p *parsers) pop() *parser {
 	return top
 }
 
-func (p *parsers) finish(errs *[]error) interface{} {
-	result := p.pop().finish(errs)
+func (p *parsers) finish(start int, errs *[]error) interface{} {
+	result := p.pop().finish(start, errs)
 	for len(*p) > 0 {
-		p.top().handleTerm(result, -1, -1, errs)
-		result = p.pop().finish(errs)
+		p.top().handleTerm(result, start, start, errs)
+		result = p.pop().finish(start, errs)
 	}
 	return result
 }
@@ -135,11 +135,7 @@ func (p *parser) handleOp(op string, start, end int, errs *[]error) {
 		if isRightAssociative && p.ops[l] == op {
 			break
 		}
-		right := p.popTerm(errs)
-		left := p.popTerm(errs)
-		term := p.term(p.ops[l], p.starts[l], p.ends[l], left, right)
-		p.terms = append(p.terms, term)
-		p.ops, p.starts, p.ends = p.ops[:l], p.starts[:l], p.ends[:l]
+		p.unwindOp(errs)
 	}
 
 	p.ops = append(p.ops, op)
@@ -152,38 +148,38 @@ func (p *parser) handleTerm(term interface{}, start, end int, errs *[]error) {
 	term = p.wrapTerm(term, start, end)
 	if p.lastWasTerm {
 		if l := len(p.ops) - 1; l >= 0 && p.ops[l] == "." {
-			right := p.popTerm(errs)
-			left := p.popTerm(errs)
-			term := p.term(p.ops[l], p.starts[l], p.ends[l], left, right)
-			p.terms = append(p.terms, term)
-			p.ops, p.starts, p.ends = p.ops[:l], p.starts[:l], p.ends[:l]
+			p.unwindOp(errs)
 		}
 
-		term = p.term("", start, start, p.popTerm(errs), term)
+		term = p.term("", start, start, p.popTerm(start, errs), term)
 	}
 	p.terms = append(p.terms, term)
 	p.lastWasTerm = true
 }
 
-func (p *parser) finish(errs *[]error) interface{} {
-	for l := len(p.ops) - 1; l >= 0; l-- {
-		right := p.popTerm(errs)
-		left := p.popTerm(errs)
-		term := p.term(p.ops[l], p.starts[l], p.ends[l], left, right)
-		p.terms = append(p.terms, term)
-		p.ops, p.starts, p.ends = p.ops[:l], p.starts[:l], p.ends[:l]
-	}
-
-	return p.popTerm(errs)
+func (p *parser) unwindOp(errs *[]error) {
+	l := len(p.ops) - 1
+	right := p.popTerm(p.starts[l], errs)
+	left := p.popTerm(p.starts[l], errs)
+	term := p.term(p.ops[l], p.starts[l], p.ends[l], left, right)
+	p.terms = append(p.terms, term)
+	p.ops, p.starts, p.ends = p.ops[:l], p.starts[:l], p.ends[:l]
 }
 
-func (p *parser) popTerm(err *[]error) (result interface{}) {
+func (p *parser) finish(start int, errs *[]error) interface{} {
+	for l := len(p.ops) - 1; l >= 0; l-- {
+		p.unwindOp(errs)
+	}
+
+	return p.popTerm(start, errs)
+}
+
+func (p *parser) popTerm(start int, err *[]error) (result interface{}) {
 	if l := len(p.terms); l > 0 {
 		result, p.terms = p.terms[l-1], p.terms[:l-1]
 		return result
 	}
-	// TODO: add correct location
-	return MissingTermError(0)
+	return MissingTermError(start)
 }
 
 func (p *parser) wrapTerm(t interface{}, start, end int) interface{} {
