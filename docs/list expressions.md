@@ -24,11 +24,11 @@ source code would be mapped to `["name:m:n", "x"]`
 
 ## Fields
 
-Field access is via the dot operator. `x.y` maps to `[".:m:n", ["name:m:n"], "x"], ["string:m:n", "y"]]`.
+Field access is via the dot operator. `x.y` maps to `[".:m:n", ["name:m:n", "x"], ["string:m:n", "y"]]`.
 
 Note that the `x` part is mapped to use `name` while the actual field
 accessed is mapped to `string`.  Fig allows the second  part to be
-name as well: `x.(y)` would map to `[".:m:n", ["name:m:n"], "x"], ["name:m:n", "y"]]`.
+name as well: `x.(y)` would map to `[".:m:n", ["name:m:n", "x"], ["name:m:n", "y"]]`.
 
 In fact, fig allows `(some_expression).(some_other_expression)` and
 these would get mapped appropriately.
@@ -43,9 +43,10 @@ The unary operators `!` and the unary `-` only have one arg.
 
 ## Equals
 
-The `=` operator is only used within functions and is a bit special in
-that `x = y` will have the `x` part mapped to  `["string:m:n", "x"]`
-instead  of `["name:m:n", "x"]` because this is defining `x`.
+The `=` operator is a bit special in that `x = y` will have the `x`
+part mapped to  `["string:m:n", "x"]` instead  of `["name:m:n", "x"]`
+because this is defining `x`.  The left hand side of the equals
+operator cannot be any expression, for instance.
 
 The equals operator can only appear in function args and closures and
 is right associative.
