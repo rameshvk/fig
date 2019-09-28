@@ -1,10 +1,10 @@
 package match
 
-// Equals matches the input with the provided value
+// Pattern matches the input with the provided value
 //
 // string, bool and float64 values are matched exactly
 // Arrays must match in size and the individual elements
-// are matched by recurively calling Equals on them.
+// are matched by recurively calling Pattern on them.
 // nil values are also matched exactly (i.e. input must be nil)
 //
 // *string, *bool and *float64 are considered "capture"
@@ -15,8 +15,12 @@ package match
 //
 // If the argument is a matcher, that is invoked instead.
 //
-// Any other value provided to Equals results in a ErrNoMatch
-func Equals(pattern interface{}) Matcher {
+// Any other value provided to Pattern results in a ErrNoMatch
+func Pattern(pattern interface{}) Matcher {
+	if m, ok := pattern.(Matcher); ok {
+		return m
+	}
+	
 	check := func(v bool) error {
 		if v {
 			return nil
@@ -27,8 +31,6 @@ func Equals(pattern interface{}) Matcher {
 		switch pattern := pattern.(type) {
 		case nil:
 			return check(v == nil)
-		case Matcher:
-			return pattern.Match(v)
 		case string:
 			return check(pattern == v)
 		case *string:
@@ -57,7 +59,7 @@ func Equals(pattern interface{}) Matcher {
 			}
 
 			for kk, elt := range pattern {
-				if err := Equals(elt).Match(items[kk]); err != nil {
+				if err := Pattern(elt).Match(items[kk]); err != nil {
 					return err
 				}
 			}

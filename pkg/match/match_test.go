@@ -21,7 +21,7 @@ func Example() {
 	var bx bool
 
 	// must match against itself
-	pattern := match.Equals(v)
+	pattern := match.Pattern(v)
 
 	// must much with matchers for each element
 	pattern = pattern.And([]interface{}{
@@ -42,17 +42,17 @@ func Example() {
 		And(match.ListLast(match.List(), &minusTail)).
 		And(match.None().Not().And(match.Any()))
 
-	if err := match.Equals(pattern).Match(v); err != nil {
+	if err := match.Pattern(pattern).Match(v); err != nil {
 		fmt.Println("Did not match", err)
 	} else {
 		fmt.Println("Got", n, boo, s, b, nx, sx, bx)
 	}
 
-	if err := match.Equals(minusHead).Match(v[1:]); err != nil {
+	if err := match.Pattern(minusHead).Match(v[1:]); err != nil {
 		fmt.Println("minus head failed", err)
 	}
 
-	if err := match.Equals(minusTail).Match(v[:len(v)-1]); err != nil {
+	if err := match.Pattern(minusTail).Match(v[:len(v)-1]); err != nil {
 		fmt.Println("minus tail failed", err)
 	}
 
@@ -67,32 +67,32 @@ func TestAuto(t *testing.T) {
 	var v interface{}
 
 	autob := match.Auto(&b)
-	if err := match.Equals([]interface{}{autob, autob}).Match([]interface{}{true, true}); err != nil {
+	if err := match.Pattern([]interface{}{autob, autob}).Match([]interface{}{true, true}); err != nil {
 		t.Fatal("did not match as expected", err)
 	}
 
 	autof := match.Auto(&f)
-	if err := match.Equals([]interface{}{autof, autof}).Match([]interface{}{1.0, 1.0}); err != nil {
+	if err := match.Pattern([]interface{}{autof, autof}).Match([]interface{}{1.0, 1.0}); err != nil {
 		t.Fatal("did not match as expected", err)
 	}
 
 	autos := match.Auto(&s)
-	if err := match.Equals([]interface{}{autos, autos}).Match([]interface{}{"ok", "ok"}); err != nil {
+	if err := match.Pattern([]interface{}{autos, autos}).Match([]interface{}{"ok", "ok"}); err != nil {
 		t.Fatal("did not match as expected", err)
 	}
 
 	autol := match.Auto(&l)
 	ll := []interface{}{"boo"}
-	if err := match.Equals([]interface{}{autol, autol}).Match([]interface{}{ll, ll}); err != nil {
+	if err := match.Pattern([]interface{}{autol, autol}).Match([]interface{}{ll, ll}); err != nil {
 		t.Fatal("did not match as expected", err)
 	}
 
 	autov := match.Auto(&v)
-	if err := match.Equals([]interface{}{autov, autov}).Match([]interface{}{1.0, 1.0}); err != nil {
+	if err := match.Pattern([]interface{}{autov, autov}).Match([]interface{}{1.0, 1.0}); err != nil {
 		t.Fatal("did not match as expected", err)
 	}
 
-	if err := match.Equals([]interface{}{autov, autov}).Match([]interface{}{1.0, 2.0}); err == nil {
+	if err := match.Pattern([]interface{}{autov, autov}).Match([]interface{}{1.0, 2.0}); err == nil {
 		t.Fatal("did not match as expected", err)
 	}
 
@@ -102,13 +102,13 @@ func TestAuto(t *testing.T) {
 }
 
 func TestEdgeCases(t *testing.T) {
-	if err := match.Equals(t).Match(t); err == nil {
+	if err := match.Pattern(t).Match(t); err == nil {
 		t.Fatal("Unexpected match")
 	}
 
 	var input = []interface{}{"x"}
 	var pattern = []interface{}{true}
-	if err := match.Equals(pattern).Match(input); err == nil {
+	if err := match.Pattern(pattern).Match(input); err == nil {
 		t.Fatal("Unexpected match")
 	}
 

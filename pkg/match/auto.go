@@ -7,13 +7,13 @@ package match
 //
 //      var v interface{}
 //      first := match.Auto(&v)
-//      match.Equals([]interface{first, first})
+//      match.Pattern([]interface{first, first})
 func Auto(ptr interface{}) Matcher {
 	matched := false
 	var pattern interface{}
 	return MatchFunc(func(v interface{}) error {
 		if matched {
-			return Equals(pattern).Match(v)
+			return Pattern(pattern).Match(v)
 		}
 		switch ptr.(type) {
 		case *bool:

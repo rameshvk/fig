@@ -9,7 +9,7 @@
 //
 // Basic Usage
 //
-//    pattern := match.Equals("string") // create matcher
+//    pattern := match.Pattern("string") // create matcher
 //    err := pattern.Match(someValue)   // check if pattern matches
 //
 // Basic Types
@@ -28,7 +28,7 @@
 //
 // Boolean operators And/Or/Not are available for composition
 //
-//    pattern := match.Equals("hello").Or("world")
+//    pattern := match.Pattern("hello").Or("world")
 //    // now pattern matches both hello and world
 //
 // List matching
@@ -132,7 +132,7 @@ func (m MatchFunc) And(x interface{}) Matcher {
 		if err := m(v); err != nil {
 			return err
 		}
-		return Equals(x).Match(v)
+		return Pattern(x).Match(v)
 	})
 }
 
@@ -142,7 +142,7 @@ func (m MatchFunc) Or(x interface{}) Matcher {
 		if err := m(v); err == nil {
 			return nil
 		}
-		return Equals(x).Match(v)
+		return Pattern(x).Match(v)
 	})
 }
 

@@ -14,7 +14,7 @@ func List() Matcher {
 // matches the provided first element and the rest match
 // the provided rest matcher
 func ListFirst(f, r interface{}) Matcher {
-	first, rest := Equals(f), Equals(r)
+	first, rest := Pattern(f), Pattern(r)
 	return MatchFunc(func(v interface{}) error {
 		x, ok := v.([]interface{})
 		if !ok || len(x) == 0 {
@@ -31,7 +31,7 @@ func ListFirst(f, r interface{}) Matcher {
 // last element while rest matches the list of all other
 // elements.
 func ListLast(l, r interface{}) Matcher {
-	last, rest := Equals(l), Equals(r)
+	last, rest := Pattern(l), Pattern(r)
 	return MatchFunc(func(v interface{}) error {
 		x, ok := v.([]interface{})
 		if !ok || len(x) == 0 {
