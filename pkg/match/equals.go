@@ -2,39 +2,75 @@ package match
 
 // Equals matches the input with the provided value
 //
-// String, Bool and Float64 are matched exactly
-// Arrays must match in size and the corresponding
-// elements must match.
+// string, bool and float64 values are matched exactly
+// Arrays must match in size and the individual elements
+// are matched by recurively calling Equals on them.
+// nil values are also matched exactly (i.e. input must be nil)
+//
+// *string, *bool and *float64 are considered "capture"
+// values -- the input type must match the base type and if
+// so the values are copied into the provided pointers.
+// *[]interface{} and generic *interface{} are also considered
+// pointer types.
 //
 // If the argument is a matcher, that is invoked instead.
-// Similarly, if an array element is a  matcher, that is invoked
-// instead.
+//
+// Any other value provided to Equals results in a ErrNoMatch
 func Equals(pattern interface{}) Matcher {
-	return MatchFunc(func(v interface{}) bool {
+	check := func(v bool) error {
+		if v {
+			return nil
+		}
+		return ErrNoMatch
+	}
+	return MatchFunc(func(v interface{}) error {
 		switch pattern := pattern.(type) {
 		case nil:
-			return v == nil
+			return check(v == nil)
 		case Matcher:
 			return pattern.Match(v)
 		case string:
-			return pattern == v
+			return check(pattern == v)
+		case *string:
+			if s, ok := v.(string); ok {
+				*pattern = s
+				return nil
+			}
 		case float64:
-			return pattern == v
+			return check(pattern == v)
+		case *float64:
+			if f, ok := v.(float64); ok {
+				*pattern = f
+				return nil
+			}
 		case bool:
-			return pattern == v
+			return check(pattern == v)
+		case *bool:
+			if b, ok := v.(bool); ok {
+				*pattern = b
+				return nil
+			}
 		case []interface{}:
 			items, ok := v.([]interface{})
 			if !ok || len(items) != len(pattern) {
-				return false
+				return ErrNoMatch
 			}
 
 			for kk, elt := range pattern {
-				if !Equals(elt).Match(items[kk]) {
-					return false
+				if err := Equals(elt).Match(items[kk]); err != nil {
+					return err
 				}
 			}
-			return true
+			return nil
+		case *[]interface{}:
+			if l, ok := v.([]interface{}); ok {
+				*pattern = l
+				return nil
+			}
+		case *interface{}:
+			*pattern = v
+			return nil
 		}
-		return false
+		return ErrNoMatch
 	})
 }
