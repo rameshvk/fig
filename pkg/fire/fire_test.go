@@ -10,14 +10,16 @@ import (
 )
 
 func TestSimple(t *testing.T) {
-	globals := fire.Object(map[fire.Value]fire.Value{
-		fire.String("x"): fire.String("hello"),
-		fire.String("o"): fire.Object(map[fire.Value]fire.Value{
-			fire.String("five"):       fire.Number(5),
-			fire.String("square"):     fire.Function(nocode, squaref),
-			fire.String("hypotenuse"): fire.Function(nocode, hypotenuse),
-		}),
+	sampleObject := fire.Object(map[fire.Value]fire.Value{
+		fire.String("five"):       fire.Number(5),
+		fire.String("square"):     fire.Function(nocode, squaref),
+		fire.String("hypotenuse"): fire.Function(nocode, hypotenuse),
 	})
+	globals := fire.Scope(
+		fire.Globals(),
+		[2]fire.Value{fire.String("x"), fire.String("hello")},
+		[2]fire.Value{fire.String("o"), sampleObject},
+	)
 
 	ctx := context.Background()
 	suite := map[string]fire.Value{
