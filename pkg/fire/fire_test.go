@@ -49,6 +49,8 @@ func TestSimple(t *testing.T) {
 		"o.hypotenuse(x=3, y=4)":                   fire.Number(5),
 		"o.hypotenuse(x, y, where(x=3, y=4))":      fire.Number(5),
 		"o.hypotenuse(x, y=z, where(x=3, z=4))":    fire.Number(5),
+		"{ it }(2)":                                fire.Number(2),
+		"{ it }(x = 5, y = 10).x":                  fire.Number(5),
 	}
 
 	for k, v := range suite {

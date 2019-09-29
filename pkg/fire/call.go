@@ -55,10 +55,15 @@ func evalArgument(ctx context.Context, args []interface{}, scope Value) (Value, 
 
 func newScope(m map[Value]interface{}, parent Value) Value {
 	s := &scope{Value: errorValue("internal error"), parent: parent}
-	for k, v := range m {
+	for name, unevaluated := range m {
+		value := Value(nil)
+		if val, ok := unevaluated.(Value); ok {
+			value = val
+		}
 		s.nameValues = append(s.nameValues, &nameValue{
-			name:        k,
-			unevaluated: v,
+			name:        name,
+			value:       value,
+			unevaluated: unevaluated,
 		})
 	}
 	return s
