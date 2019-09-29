@@ -24,5 +24,9 @@ func closure(ctx context.Context, args []interface{}, outer Value) Value {
 		return errorValue("cannot define value for it")
 	}
 
-	return closureValue{result, newScope(scope, outer)}
+	s := newScope(outer)
+	for k, v := range scope {
+		s.add(ctx, k, v)
+	}
+	return closureValue{result, s}
 }

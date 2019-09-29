@@ -12,15 +12,19 @@ func call(ctx context.Context, args []interface{}, outer Value) Value {
 	if err != nil {
 		return err
 	}
+	s := newScope(outer)
+	for k, v := range scope {
+		s.add(ctx, k, v)
+	}
 	if native, ok := fn.(NativeCallable); ok {
-		return native.NativeCall(ctx, args, newScope(scope, outer))
+		return native.NativeCall(ctx, args, s)
 	}
 	var arg Value
 	if len(args) == 1 && assignPattern.Match(args[0]) != nil {
-		arg = Eval(ctx, args[0], newScope(scope, outer))
+		arg = Eval(ctx, args[0], s)
 	} else {
 		var errv Value
-		arg, errv = evalArgument(ctx, args, newScope(scope, outer))
+		arg, errv = evalArgument(ctx, args, s)
 		if errv != nil {
 			return errv
 		}
@@ -44,14 +48,14 @@ func evalArgument(ctx context.Context, args []interface{}, scope Value) (Value, 
 			return nil, err
 		}
 	}
-	for k := range inner {
-		if _, ok := o[k]; ok {
-			return nil, errorValue("duplicate name")
+	s := newScope(scope)
+	for k, v := range inner {
+		if err := s.add(ctx, k, v); err != nil {
+			return nil, err
 		}
 	}
-	fullScope := newScope(inner, scope)
 	for k := range inner {
-		o[k] = fullScope.Lookup(ctx, k)
+		o[k] = s.Lookup(ctx, k)
 	}
 	return o, nil
 }

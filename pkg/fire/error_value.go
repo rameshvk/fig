@@ -15,6 +15,10 @@ func (e errorValue) Code(ctx context.Context) string {
 	return `error(` + stringValue(e).Code(ctx) + `)`
 }
 
+func (e errorValue) HashCode() interface{} {
+	return e
+}
+
 func (e errorValue) Call(ctx context.Context, args ...Value) Value {
 	return e
 }

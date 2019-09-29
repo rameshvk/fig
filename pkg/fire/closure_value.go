@@ -18,12 +18,16 @@ func (c closureValue) Code(ctx context.Context) string {
 	panic("not yet implemented")
 }
 
+func (c closureValue) HashCode() interface{} {
+	return closureValue{}
+}
+
 func (c closureValue) Call(ctx context.Context, args ...Value) Value {
 	if len(args) != 1 {
 		return errorValue("closures always take one arg")
 	}
-	it := map[Value]interface{}{stringValue("it"): args[0]}
-	return Eval(ctx, c.expression, newScope(it, c.scope))
+	it := Scope(ctx, c.scope, [2]Value{stringValue("it"), args[0]})
+	return Eval(ctx, c.expression, it)
 }
 
 func (c closureValue) Lookup(ctx context.Context, field Value) Value {

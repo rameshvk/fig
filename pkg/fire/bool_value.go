@@ -18,6 +18,10 @@ func (b boolValue) Code(ctx context.Context) string {
 	return "false"
 }
 
+func (b boolValue) HashCode() interface{} {
+	return b
+}
+
 func (b boolValue) Call(ctx context.Context, args ...Value) Value {
 	return errorValue("cannot call a bool")
 }

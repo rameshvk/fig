@@ -30,6 +30,10 @@ func (s stringValue) Code(ctx context.Context) string {
 	return buf.String()
 }
 
+func (s stringValue) HashCode() interface{} {
+	return s
+}
+
 func (s stringValue) Call(ctx context.Context, args ...Value) Value {
 	return errorValue("cannot call a string")
 }

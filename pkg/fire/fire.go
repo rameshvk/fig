@@ -10,6 +10,11 @@ type Value interface {
 	// generates the fig language representation of the value.
 	Code(ctx context.Context) string
 
+	// HashCode is any code useful for avoiding collisions when
+	// storing the value as a key. Two values that are equal must
+	// have the same hash code.
+	HashCode() interface{}
+
 	// Call with the provided args.
 	Call(ctx context.Context, args ...Value) Value
 

@@ -10,18 +10,19 @@ import (
 )
 
 func TestSimple(t *testing.T) {
+	ctx := context.Background()
 	sampleObject := fire.Object(map[fire.Value]fire.Value{
 		fire.String("five"):       fire.Number(5),
 		fire.String("square"):     fire.Function(nocode, squaref),
 		fire.String("hypotenuse"): fire.Function(nocode, hypotenuse),
 	})
 	globals := fire.Scope(
+		ctx,
 		fire.Globals(),
 		[2]fire.Value{fire.String("x"), fire.String("hello")},
 		[2]fire.Value{fire.String("o"), sampleObject},
 	)
 
-	ctx := context.Background()
 	suite := map[string]fire.Value{
 		"1 + 2":              fire.Number(3),
 		"1 < 5":              fire.Bool(true),

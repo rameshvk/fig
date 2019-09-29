@@ -30,6 +30,10 @@ func (f nativeFnValue) Code(ctx context.Context) string {
 	return f.code(ctx)
 }
 
+func (f nativeFnValue) HashCode() interface{} {
+	return "(native)"
+}
+
 func (f nativeFnValue) NativeCall(ctx context.Context, args []interface{}, scope Value) Value {
 	return f.fn(ctx, args, scope)
 }

@@ -15,6 +15,10 @@ func (o obj) Code(ctx context.Context) string {
 	panic("not yet implemented")
 }
 
+func (o obj) HashCode() interface{} {
+	return "(obj)"
+}
+
 func (o obj) Call(ctx context.Context, args ...Value) Value {
 	return errorValue("cannot call an object")
 }

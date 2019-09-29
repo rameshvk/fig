@@ -18,6 +18,10 @@ func (f funcValue) Code(ctx context.Context) string {
 	return f.code(ctx)
 }
 
+func (f funcValue) HashCode() interface{} {
+	return "()"
+}
+
 func (f funcValue) Call(ctx context.Context, args ...Value) Value {
 	return f.run(ctx, args...)
 }

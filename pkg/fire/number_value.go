@@ -26,6 +26,10 @@ func (n numberValue) Code(ctx context.Context) string {
 	return strconv.FormatFloat(float64(n), 'g', -1, 64)
 }
 
+func (n numberValue) HashCode() interface{} {
+	return n
+}
+
 func (n numberValue) Call(ctx context.Context, args ...Value) Value {
 	return errorValue("cannot call a number")
 }
