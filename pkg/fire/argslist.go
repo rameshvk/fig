@@ -8,7 +8,7 @@ func filterArgs(args []interface{}) ([]interface{}, map[Value]interface{}, Value
 	rest := []interface{}{}
 	where := map[Value]interface{}{}
 	for _, arg := range args {
-		if wargs := whereArgs(arg); wargs != nil {
+		if wargs, ok := whereArgs(arg); ok {
 			for _, warg := range wargs {
 				if err := accumulateAssign(where, warg); err != nil {
 					return nil, nil, err
@@ -21,7 +21,7 @@ func filterArgs(args []interface{}) ([]interface{}, map[Value]interface{}, Value
 	return rest, where, nil
 }
 
-func whereArgs(v interface{}) []interface{} {
+func whereArgs(v interface{}) ([]interface{}, bool) {
 	var args []interface{}
 	err := match.ListFirst(
 		match.StringPrefix("call"),
@@ -30,15 +30,16 @@ func whereArgs(v interface{}) []interface{} {
 			&args,
 		)).Match(v)
 	if err != nil {
-		return nil
+		return nil, false
 	}
-	return args
+	return args, true
 }
 
 func accumulateAssign(result map[Value]interface{}, arg interface{}) Value {
 	names := []string{}
 	for assignPattern.Match(arg) == nil {
 		var name string
+
 		err := match.Pattern([]interface{}{
 			match.StringPrefix("="),
 			[]interface{}{match.StringPrefix("string"), &name},

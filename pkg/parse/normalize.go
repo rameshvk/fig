@@ -79,10 +79,10 @@ func appendArgs(list []interface{}, loc string, args interface{}, errs *[]error)
 	return appendCommas(list, l[2], errs)
 }
 
-func appendCommas(list []interface{}, l interface{}, errs *[]error) interface{} {
+func appendCommas(list []interface{}, l interface{}, errs *[]error) []interface{} {
 	if comma, ok := l.([]interface{}); ok && comma[0] == "," {
-		list = append(list, normalizeArg(comma[2], errs))
-		return appendCommas(list, comma[3], errs)
+		list = appendCommas(list, comma[2], errs)
+		return append(list, normalizeArg(comma[3], errs))
 	}
 	return append(list, normalizeArg(l, errs))
 }
