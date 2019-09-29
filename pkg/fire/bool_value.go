@@ -4,6 +4,11 @@ import (
 	"context"
 )
 
+// Bool converts a bool into a fire Value
+func Bool(b bool) Value {
+	return boolValue(b)
+}
+
 type boolValue bool
 
 func (b boolValue) Code(ctx context.Context) string {

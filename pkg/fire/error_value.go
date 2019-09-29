@@ -4,6 +4,11 @@ import (
 	"context"
 )
 
+// Error converts a string into an error value
+func Error(s string) Value {
+	return errorValue(s)
+}
+
 type errorValue string
 
 func (e errorValue) Code(ctx context.Context) string {

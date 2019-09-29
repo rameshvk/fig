@@ -28,11 +28,11 @@ func whereArgs(v interface{}) []interface{} {
 		match.ListFirst(
 			[]interface{}{match.StringPrefix("name"), "where"},
 			&args,
-		))
+		)).Match(v)
 	if err != nil {
-		return args
+		return nil
 	}
-	return nil
+	return args
 }
 
 func accumulateAssign(result map[Value]interface{}, arg interface{}) Value {

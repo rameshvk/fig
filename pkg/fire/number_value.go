@@ -6,6 +6,11 @@ import (
 	"strconv"
 )
 
+// Number converts a float64 into a fire Value
+func Number(f float64) Value {
+	return numberValue(f)
+}
+
 type numberValue float64
 
 func (n numberValue) Code(ctx context.Context) string {

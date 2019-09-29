@@ -5,6 +5,11 @@ import (
 	"context"
 )
 
+// String creates a string value
+func String(s string) Value {
+	return stringValue(s)
+}
+
 type stringValue string
 
 func (s stringValue) Code(ctx context.Context) string {
