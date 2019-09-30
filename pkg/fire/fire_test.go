@@ -21,6 +21,7 @@ func TestSimple(t *testing.T) {
 		fire.Globals(),
 		[2]fire.Value{fire.String("x"), fire.String("hello")},
 		[2]fire.Value{fire.String("o"), sampleObject},
+		[2]fire.Value{fire.String("panic"), fire.Function(nocode, panicf)},
 	)
 
 	suite := map[string]fire.Value{
@@ -54,6 +55,18 @@ func TestSimple(t *testing.T) {
 		"o.hypotenuse(x, y=z, where(x=3, z=4))":    fire.Number(5),
 		"{ it }(2)":                                fire.Number(2),
 		"{ it }(x = 5, y = 10).x":                  fire.Number(5),
+
+		// test that if short-circuits properly
+		`if(5 < 10, "good", panic())`:       fire.String("good"),
+		`if(error("boo"), panic(), "good")`: fire.String("good"),
+
+		// test short circuited & and |
+		`error("boo") & panic()`: fire.Error("boo"),
+		`"hello" | panic()`:      fire.String("hello"),
+
+		// test object and error
+		`object(x = 5).x`: fire.Number(5),
+		`error("hello")`:  fire.Error("hello"),
 	}
 
 	for k, v := range suite {
@@ -86,4 +99,8 @@ func hypotenuse(ctx context.Context, args ...fire.Value) fire.Value {
 		return fire.Error("invalid args")
 	}
 	return fire.Number(math.Sqrt(x*x + y*y))
+}
+
+func panicf(ctx context.Context, args ...fire.Value) fire.Value {
+	panic("unexpected")
 }
