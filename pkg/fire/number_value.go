@@ -15,13 +15,13 @@ type numberValue float64
 
 func (n numberValue) Code(ctx context.Context) string {
 	if math.IsNaN(float64(n)) {
-		return "math.NaN()"
+		return "math.NaN"
 	}
 	if math.IsInf(float64(n), 1) {
-		return "math.Inf()"
+		return "math.Inf"
 	}
 	if math.IsInf(float64(n), -1) {
-		return "-math.Inf()"
+		return "-math.Inf"
 	}
 	return strconv.FormatFloat(float64(n), 'g', -1, 64)
 }
