@@ -2,7 +2,9 @@ package fire_test
 
 import (
 	"context"
+	"errors"
 	"math"
+	"reflect"
 	"testing"
 
 	"github.com/rameshvk/fig/pkg/fire"
@@ -77,6 +79,29 @@ func TestSimple(t *testing.T) {
 		got := fire.Eval(ctx, parsed, globals)
 		if !got.Equals(ctx, v) {
 			t.Fatal("Mismatched values", k, v, got)
+		}
+	}
+}
+
+func TestWrap(t *testing.T) {
+	values := []interface{}{
+		"hello",
+		true,
+		5.0,
+		errors.New("some error"),
+		map[interface{}]interface{}{"hello": 5.0},
+	}
+	ctx := context.Background()
+	for _, value := range values {
+		dupe := fire.ToNative(ctx, fire.FromNative(ctx, value))
+		errdupe, ok := dupe.(error)
+		errval, ok2 := value.(error)
+		if ok || ok2 {
+			if errdupe.Error() != errval.Error() {
+				t.Fatal("Mismatched error types", errdupe, errval)
+			}
+		} else if !reflect.DeepEqual(value, dupe) {
+			t.Fatal("Mismatched", value, dupe)
 		}
 	}
 }

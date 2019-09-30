@@ -17,15 +17,10 @@ func Example() {
 
 	cfg := fig.Config(url, key, secret, time.Second)
 
-	// set my.setting to the expression:
-	//   if (user == "boo") then "hoo" else "woo"
-	// The <user> part needs to be provided when getting the config.
-
-	expr := `["if", ["==", ["ref", "user"], "boo"], "hoo", "woo"]`
-	store.Set("my.setting", expr)
+	store.Set("my.setting", `if(it.user == "boo", "hoo", "woo")`)
 
 	// now get the setting and provide user = boo as arg
-	v, err := cfg.Get("my.setting", map[string]string{"user": "boo"})
+	v, err := cfg.Get("my.setting", map[interface{}]interface{}{"user": "boo"})
 
 	if v != "hoo" || err != nil {
 		panic("unexpected result")
@@ -53,10 +48,10 @@ func TestConfig(t *testing.T) {
 	defer ts.Close()
 
 	server.SetBasicAuthInfo(authStore, "mykey", "mysecret")
-	store.Set("boo", `["ref", "boo"]`)
+	store.Set("boo", `it.boo`)
 
 	cfg := fig.Config(ts.URL, "mykey", "mysecret", time.Millisecond)
-	v, err := cfg.Get("boo", map[string]string{"boo": "hoo"})
+	v, err := cfg.Get("boo", map[interface{}]interface{}{"boo": "hoo"})
 
 	if v != "hoo" || err != nil {
 		t.Fatal("Unexpected config", v, err)

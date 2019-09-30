@@ -4,11 +4,13 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/rameshvk/fig/pkg/eval"
+	"github.com/rameshvk/fig/pkg/fire"
+	"github.com/rameshvk/fig/pkg/parse"
 )
 
 // BasicAuth is the basic auth middleware that checks if a request
@@ -22,15 +24,21 @@ func BasicAuth(s Store, authorized, unauthorized func(r *http.Request) Store) fu
 		}
 		_, configs := s.GetSince(-1)
 		if v, ok := configs["auth:basic:"+user]; ok {
-			scope := eval.ExtendScope(
-				map[string]interface{}{
-					"key":    user,
-					"secret": pass,
-					"api":    apiName(r),
-				},
-				eval.DefaultScope,
+			parsed, errs := parse.String(v)
+			if len(errs) > 0 {
+				return unauthorized(r)
+			}
+
+			ctx := context.Background()
+			scope := fire.Scope(
+				ctx,
+				fire.Globals(),
+				[2]fire.Value{fire.String("key"), fire.String(user)},
+				[2]fire.Value{fire.String("secret"), fire.String(pass)},
+				[2]fire.Value{fire.String("api"), fire.String(apiName(r))},
 			)
-			if v, err := eval.Encoded(v, scope); err == nil && v == true {
+			result := fire.Eval(ctx, parsed, scope)
+			if b, ok := result.Bool(ctx); b && ok {
 				return authorized(r)
 			}
 		}
@@ -46,6 +54,6 @@ func SetBasicAuthInfo(s Store, user, password string) {
 	if err != nil {
 		panic(err)
 	}
-	setting := fmt.Sprintf(`["==",["ref", "secret"],%s]`, encoded)
+	setting := fmt.Sprintf(`secret == %s`, encoded)
 	s.Set("auth:basic:"+user, setting)
 }

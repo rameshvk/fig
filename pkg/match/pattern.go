@@ -20,7 +20,7 @@ func Pattern(pattern interface{}) Matcher {
 	if m, ok := pattern.(Matcher); ok {
 		return m
 	}
-	
+
 	check := func(v bool) error {
 		if v {
 			return nil
